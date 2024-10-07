@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery List Maker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        input[type="text"], select {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        select {
+            margin-left: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .checkbox {
+            margin-right: 10px;
+        }
+        .delete-btn {
+            margin-left: auto;
+            background-color: #f44336;
+            padding: 5px 10px;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grocery List Maker</h1>
+        <div class="input-group">
+            <input type="text" id="itemInput" placeholder="Enter item name">
+            <select id="categorySelect">
+                <option value="produce">Produce</option>
+                <option value="dairy">Dairy</option>
+                <option value="bakery">Bakery</option>
+                <option value="meat">Meat</option>
+                <option value="other">Other</option>
+            </select>
+            <button onclick="addItem()">Add</button>
+        </div>
+        <ul id="groceryList"></ul>
+    </div>
+
+    <script>
+        let groceryList = JSON.parse(localStorage.getItem('groceryList')) || [];
+
+        function addItem() {
+            const itemInput = document.getElementById('itemInput');
+            const categorySelect = document.getElementById('categorySelect');
+            const item = itemInput.value.trim();
+            const category = categorySelect.value;
+
+            if (item) {
+                groceryList.push({ id: Date.now(), name: item, category: category, checked: false });
+                itemInput.value = '';
+                saveAndRenderList();
+            }
+        }
+
+        function toggleItem(id) {
+            groceryList = groceryList.map(item => 
+                item.id === id ? { ...item, checked: !item.checked } : item
+            );
+            saveAndRenderList();
+        }
+
+        function deleteItem(id) {
+            groceryList = groceryList.filter(item => item.id !== id);
+            saveAndRenderList();
+        }
+
+        function saveAndRenderList() {
+            localStorage.setItem('groceryList', JSON.stringify(groceryList));
+            renderList();
+        }
+
+        function renderList() {
+            const listElement = document.getElementById('groceryList');
+            listElement.innerHTML = '';
+
+            groceryList.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <input type="checkbox" class="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${item.id})">
+                    <span class="${item.checked ? 'completed' : ''}">${item.name} (${item.category})</span>
+                    <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                `;
+                listElement.appendChild(li);
+            });
+        }
+
+        // Initial render
+        renderList();
+    </script>
+</body>
+</html>
