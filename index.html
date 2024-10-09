@@ -3,69 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery List Maker</title>
+    <title>MarketMate</title>
     <style>
+        :root {
+            --primary-color:black;
+            --secondary-color: #f4f4f4;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            position: relative; /* Added for positioning the Finish button */
+            position: relative;
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--primary-color);
         }
         .input-group {
             display: flex;
-            flex-wrap: wrap; /* Added for responsiveness */
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
         }
-        input[type="text"], input[type="number"], select {
-            flex: 1 1 calc(33% - 10px); /* Responsive width */
+        input, select {
+            flex-grow: 1;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            margin-right: 10px; /* Space between input fields */
-        }
-        select {
-            margin-left: 0; /* Removed margin for the first element */
+            font-size: 16px;
         }
         button {
             padding: 10px 15px;
-            background-color:black;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 16px;
         }
         button:hover {
-            background-color: #45a049;
-        }
-        .finish-button {
-            position: absolute; /* Positioned the Finish button */
-            top: 20px; /* Adjust as needed */
-            right: 20px; /* Adjust as needed */
-            background-color: black; /* Different color for distinction */
+            opacity: 0.9;
         }
         ul {
             list-style-type: none;
             padding: 0;
         }
         li {
-            background-color: #f9f9f9;
+            background-color: var(--secondary-color);
             margin-bottom: 10px;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -73,39 +73,70 @@
         .checkbox {
             margin-right: 10px;
         }
+        .item-details {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
         .delete-btn {
-            margin-left: auto;
             background-color: #f44336;
             padding: 5px 10px;
         }
         .completed {
             text-decoration: line-through;
-            color: #888;
+            opacity: 0.6;
         }
-        /* Styles for the settings modal */
-        #settingsModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
+        .settings {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
         }
-        .settings-content {
+        .settings-panel {
+            position: absolute;
+            top: 60px;
+            left: 20px;
             background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 400px;
-            width: 100%;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .total-cost {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: right;
+        }
+        .hidden {
+            display: none;
+        }
+        #finishedBtn {
+            display: block;
+            margin: 20px auto;
+            font-size: 18px;
+            padding: 15px 30px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Grocery List Maker</h1>
+        <button class="settings" onclick="toggleSettings()">Settings</button>
+        <div class="settings-panel hidden" id="settingsPanel">
+            <h2>Settings</h2>
+            <div class="input-group">
+                <select id="currencySelect" onchange="updateSettings()">
+                    <option value="$">USD ($)</option>
+                    <option value="€">EUR (€)</option>
+                    <option value="£">GBP (£)</option>
+                    <option value="KSh">Kenyan Shilling (KSh)</option>
+                </select>
+                <select id="weightUnitSelect" onchange="updateSettings()">
+                    <option value="kg">Kilograms (kg)</option>
+                    <option value="lb">Pounds (lb)</option>
+                    <option value="g">Grams (g)</option>
+                </select>
+            </div>
+        </div>
+        <h1>MarketMate</h1>
         <div class="input-group">
             <input type="text" id="itemInput" placeholder="Enter item name">
             <select id="categorySelect">
@@ -115,69 +146,47 @@
                 <option value="meat">Meat</option>
                 <option value="other">Other</option>
             </select>
-            <input type="number" id="amountInput" placeholder="Amount" min="1">
+            <input type="number" id="quantityInput" placeholder="Quantity" min="1" step="1">
+            <select id="measurementType">
+                <option value="unit">Per Unit</option>
+                <option value="weight">By Weight</option>
+            </select>
+            <input type="number" id="priceInput" placeholder="Price per item/kg" step="0.01">
+            <button onclick="addItem()">Add</button>
         </div>
-        <div class="input-group">
-            <input type="number" id="weightInput" placeholder="Weight" step="0.1">
-            <input type="number" id="priceInput" placeholder="Price per item" step="0.01">
-        </div>
-        <button onclick="addItem()">Add</button> <!-- Moved Add button here -->
-        <button class="finish-button" onclick="showTotal()">Finish</button> <!-- Positioned Finish button -->
         <ul id="groceryList"></ul>
-        <div id="totalDisplay" style="margin-top: 20px;"></div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal">
-        <div class="settings-content">
-            <h2>Settings</h2>
-            <label for="currencySelect">Select Currency:</label>
-            <select id="currencySelect">
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-            </select>
-            <br><br>
-            <label for="weightUnitSelect">Select Weight Unit:</label>
-            <select id="weightUnitSelect">
-                <option value="grams">Grams</option>
-                <option value="kilograms">Kilograms</option>
-                <option value="pounds">Pounds</option>
-            </select>
-            <br><br>
-            <button onclick="saveSettings()">Save</button>
-            <button onclick="closeSettings()">Close</button>
-        </div>
+        <button id="finishedBtn" onclick="showTotal()">Finished</button>
+        <div class="total-cost hidden" id="totalCost"></div>
     </div>
 
     <script>
         let groceryList = JSON.parse(localStorage.getItem('groceryList')) || [];
+        let settings = JSON.parse(localStorage.getItem('settings')) || { currency: '$', weightUnit: 'kg' };
 
         function addItem() {
             const itemInput = document.getElementById('itemInput');
             const categorySelect = document.getElementById('categorySelect');
-            const amountInput = document.getElementById('amountInput');
-            const weightInput = document.getElementById('weightInput');
+            const quantityInput = document.getElementById('quantityInput');
+            const measurementType = document.getElementById('measurementType');
             const priceInput = document.getElementById('priceInput');
             const item = itemInput.value.trim();
             const category = categorySelect.value;
-            const amount = amountInput.value.trim() || 1; // Default to 1 if empty
-            const weight = weightInput.value.trim() || 0; // Default to 0 if empty
-            const price = parseFloat(priceInput.value) || 0; // Default to 0 if empty
+            const quantity = parseFloat(quantityInput.value) || 1;
+            const isByWeight = measurementType.value === 'weight';
+            const price = parseFloat(priceInput.value) || 0;
 
             if (item) {
                 groceryList.push({ 
                     id: Date.now(), 
                     name: item, 
                     category: category, 
-                    amount: amount, 
-                    weight: weight, 
-                    price: price, 
+                    quantity: quantity,
+                    isByWeight: isByWeight,
+                    price: price,
                     checked: false 
                 });
                 itemInput.value = '';
-                amountInput.value = '';
-                weightInput.value = '';
+                quantityInput.value = '';
                 priceInput.value = '';
                 saveAndRenderList();
             }
@@ -206,43 +215,45 @@
 
             groceryList.forEach(item => {
                 const li = document.createElement('li');
+                const itemCost = item.quantity * item.price;
+                const quantityDisplay = item.isByWeight ? `${item.quantity} ${settings.weightUnit}` : `${item.quantity} unit(s)`;
+                const priceDisplay = item.isByWeight ? `${settings.currency}${item.price.toFixed(2)}/${settings.weightUnit}` : `${settings.currency}${item.price.toFixed(2)}/unit`;
                 li.innerHTML = `
                     <input type="checkbox" class="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${item.id})">
-                    <span class="${item.checked ? 'completed' : ''}">${item.name} (${item.category}) - Amount: ${item.amount} - Weight: ${item.weight} - Price: ${item.price.toFixed(2)}</span>
+                    <div class="item-details ${item.checked ? 'completed' : ''}">
+                        ${item.name} (${item.category}) - 
+                        ${quantityDisplay}, ${priceDisplay}
+                        <br>
+                        Total: ${settings.currency}${itemCost.toFixed(2)}
+                    </div>
                     <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
                 `;
                 listElement.appendChild(li);
             });
         }
 
+        function toggleSettings() {
+            const settingsPanel = document.getElementById('settingsPanel');
+            settingsPanel.classList.toggle('hidden');
+        }
+
+        function updateSettings() {
+            settings.currency = document.getElementById('currencySelect').value;
+            settings.weightUnit = document.getElementById('weightUnitSelect').value;
+            localStorage.setItem('settings', JSON.stringify(settings));
+            renderList();
+        }
+
         function showTotal() {
-            const total = groceryList.reduce((sum, item) => sum + (item.price * item.amount), 0);
-            document.getElementById('totalDisplay').innerHTML = `Total: ${total.toFixed(2)}`; // Removed the dollar sign
-        }
-
-        function openSettings() {
-            document.getElementById('settingsModal').style.display = 'flex';
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').style.display = 'none';
-        }
-
-        function saveSettings() {
-            const currency = document.getElementById('currencySelect').value;
-            const weightUnit = document.getElementById('weightUnitSelect').value;
-
-            // Save settings to localStorage or update variables as needed
-            localStorage.setItem('currency', currency);
-            localStorage.setItem('weightUnit', weightUnit);
-
-            alert('Settings saved successfully!');
-
-            // Close the modal
-            closeSettings();
+            const totalCostElement = document.getElementById('totalCost');
+            let totalCost = groceryList.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            totalCostElement.textContent = `Total: ${settings.currency}${totalCost.toFixed(2)}`;
+            totalCostElement.classList.remove('hidden');
         }
 
         // Initial render
+        document.getElementById('currencySelect').value = settings.currency;
+        document.getElementById('weightUnitSelect').value = settings.weightUnit;
         renderList();
     </script>
 </body>
